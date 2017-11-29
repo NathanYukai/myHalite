@@ -1,6 +1,7 @@
 module Hlt.DistributeShips where
 
 import Hlt.Entity
+import Data.List
 
 allCanDock :: [Ship] -> [Planet] -> [(Ship,Planet)]
 allCanDock ss ps = [(s,p) | s <- ss, p <-ps , canDock s p]
@@ -15,5 +16,9 @@ restShipFromPlan (s:allShips) dockPlan
 explorationDistribute :: [Ship] -> [Planet] -> [(Ship,Planet)]
 explorationDistribute [] _ = []
 explorationDistribute _ [] = []
-explorationDistribute (s:ss) (p:ps) = (s, p) : explorationDistribute ss ps
+explorationDistribute (s:ss) ps = (s,p) : explorationDistribute ss restP
+    where p = minimumBy comp ps
+          restP = ps \\ [p]
+          comp = \a b -> compare (distance s a) (distance s b)
+
 

@@ -4,6 +4,7 @@ import Hlt.GameMap
 import Hlt.Navigation
 import Hlt.Networking
 import Hlt.DistributeShips
+import Hlt.Utils
 
 -- | Define the name of our bot.
 botName :: String
@@ -16,9 +17,10 @@ info g s = appendFile (show (myId g) ++ "-" ++ botName ++ ".log") (s ++ "\n")
 myProductionRate :: [Planet] -> Int
 myProductionRate ps = sum $ map production ps
 
-cmd_executeExplore :: [(Ship, Planet)] -> [String]
-cmd_executeExplore [] = []
-cmd_executeExplore ((s,p):rest) = (moveToTarget s p) : cmd_executeExplore rest 
+cmd_executeExplore :: [(Ship, Planet)] -> GameMap -> [String]
+cmd_executeExplore [] _ = []
+cmd_executeExplore ((s,p):rest) m = cmd : (cmd_executeExplore rest m) 
+    where cmd = navigateToTarget m maxSpeed s (closestLocationTo s p)
 
 
 cmd_DockAll :: [(Ship, Planet)] -> [String]
@@ -30,7 +32,6 @@ cmd_DockAll ((s,p):rest) = dock s p : cmd_DockAll rest
 run :: GameMap -> IO ()
 run i = do
     -- Update map
-    state <- 1
     g <- updateGameMap i
     info g "---NEW TURN---"
 
@@ -39,7 +40,7 @@ run i = do
         dockPlan = allCanDock ss ps
         canNotDockShips = restShipFromPlan ss dockPlan
         explorePlan = explorationDistribute canNotDockShips ps
-        allCommand = cmd_DockAll dockPlan ++ cmd_executeExplore explorePlan  
+        allCommand = cmd_DockAll dockPlan ++ cmd_executeExplore explorePlan g  
     
     
     -- Send commands to move each Ship to the first empty Planet

@@ -28,9 +28,9 @@ listMyShips :: GameMap -> [Ship]
 listMyShips g = Map.elems $ ships $ Maybe.fromJust $ Map.lookup (myId g) (allPlayers g)
 
 -- | Checks if any of the given Entities are in between two Entities.
-entitiesBetweenList :: Entity a => Entity b => Entity c => [a] -> b -> c -> Bool
-entitiesBetweenList l e0 e1 =  any (\e -> isSegmentCircleCollision e0 e1 e) $ filter (\e -> notEqual e e0 && notEqual e e1) l
+entitiesBetweenList :: Entity a => Entity b => Entity c => [a] -> b -> c -> [a]
+entitiesBetweenList l e0 e1 = filter (\e -> isSegmentCircleCollision e0 e1 e) $ filter (\e -> notEqual e e0 && notEqual e e1) l
 
 -- | Checks if there are any Entities between two Entities.
-entitiesBetween :: Entity a => Entity b => GameMap -> Bool -> a -> b -> Bool
-entitiesBetween g c a b = entitiesBetweenList (listAllPlanets g) a b || (c && entitiesBetweenList (listAllShips g) a b)
+entitiesBetween :: Entity a => Entity b => GameMap -> a -> b -> ([Planet],[Ship]) 
+entitiesBetween g e1 e2 = (entitiesBetweenList (listAllPlanets g) e1 e2 , (entitiesBetweenList (listAllShips g) e1 e2))

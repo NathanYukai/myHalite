@@ -23,26 +23,27 @@ undock s = "u " ++ (show $ shipId s)
 
 -- | Move a Ship directly towards a target.
 moveToTarget :: Entity a => Ship -> a -> String
-moveToTarget s e = thrust s (min (distanceEdges s e) (maxSpeed/2)) (angleRadians s e)
+moveToTarget s e = thrust s (min (distanceEdges s e) maxSpeed) (angleRadians s e)
 
-{-|
-  Navigate an Entity towards a target.
+-- target parameter is not used for now.
+getAvoidAngle :: Ship -> ([Planet],[Ship]) -> Float
+getAvoidAngle _ ([],[]) = 0
+getAvoidAngle s (sobs,[]) = atan $ lenToAvoid/dToObs
+    where o = head sobs
+          dToObs = distance s o
+          lenToAvoid = radius o 
+etAvoidAngle s ([],pobs) = atan $ lenToAvoid/dToObs
+    where o = head pobs
+          dToObs = distance s o
+          lenToAvoid = radius o 
 
-  example:
+navigateToTarget :: Entity a => GameMap -> Float -> Ship -> a -> String
+navigateToTarget map spd ship t = thrust ship spd $ a+addAngle
+    where d = distance ship t
+          a = angleRadians ship t
+          obstacles = entitiesBetween map ship t
+          addAngle = getAvoidAngle ship obstacles
 
-  > dockCommand gamemap speed include_ships corrections ship target
 
-  where `corrections` is the number of corrections to attempt when finding a path with no obstacles.
--}
-navigateToTarget :: Entity a => GameMap -> Float -> Bool -> Int -> Ship -> a -> String
-navigateToTarget g v b i s e = do
-    let d = distance s e
-        a = angleRadians s e
-        step = pi/90
-    if (i < 0) then
-        ""
-    else
-        if (entitiesBetween g b s e) then
-            navigateToTarget g v b (i - 1) s (Location (x s + (cos (a + step)) * d) (y s + (sin (a + step)) * d))
-        else
-            thrust s (min d v) a
+
+
