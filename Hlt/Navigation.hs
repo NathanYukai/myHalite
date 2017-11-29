@@ -28,12 +28,12 @@ moveToTarget s e = thrust s (min (distanceEdges s e) maxSpeed) (angleRadians s e
 -- target parameter is not used for now.
 getAvoidAngle :: Ship -> ([Planet],[Ship]) -> Float
 getAvoidAngle _ ([],[]) = 0
-getAvoidAngle s (sobs,[]) = atan $ lenToAvoid/dToObs
-    where o = head sobs
+getAvoidAngle s ([],pobs) = atan $ lenToAvoid/dToObs
+    where o = head pobs
           dToObs = distance s o
           lenToAvoid = radius o 
-etAvoidAngle s ([],pobs) = atan $ lenToAvoid/dToObs
-    where o = head pobs
+getAvoidAngle s (sobs,_) = atan $ lenToAvoid/dToObs
+    where o = head sobs
           dToObs = distance s o
           lenToAvoid = radius o 
 

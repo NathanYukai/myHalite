@@ -21,4 +21,5 @@ explorationDistribute (s:ss) ps = (s,p) : explorationDistribute ss restP
           restP = ps \\ [p]
           comp = \a b -> compare (distance s a) (distance s b)
 
-
+-- attack nearby docking enemy ship first, then nearby freeShip
+attackPlan :: 
