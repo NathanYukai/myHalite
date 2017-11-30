@@ -20,7 +20,11 @@ myProductionRate ps = sum $ map production ps
 cmd_executeExplore :: [(Ship, Planet)] -> GameMap -> [String]
 cmd_executeExplore [] _ = []
 cmd_executeExplore ((s,p):rest) m = cmd : (cmd_executeExplore rest m) 
-    where cmd = navigateToTarget m maxSpeed s (closestLocationTo s p)
+    where cmd = navigateToTarget m spd s target
+          spd = minimum [maxSpeed,dist-0.5]
+          target = (closestLocationTo s p)
+          dist = distance s target
+          
 
 
 cmd_DockAll :: [(Ship, Planet)] -> [String]
