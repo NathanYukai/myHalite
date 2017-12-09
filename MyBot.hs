@@ -5,27 +5,21 @@ import Hlt.Navigation
 import Hlt.Networking
 import Hlt.DistributeShips
 import Hlt.Utils
+import Data.List
 
 -- | Define the name of our bot.
 botName :: String
-botName = "AdamBot"
+botName = "NSBot"
 
 -- | Log to a file
 info :: GameMap -> String -> IO ()
 info g s = appendFile (show (myId g) ++ "-" ++ botName ++ ".log") (s ++ "\n")
 
-myProductionRate :: [Planet] -> Int
-myProductionRate ps = sum $ map production ps
-
-cmd_executeExplore :: [(Ship, Planet)] -> GameMap -> [String]
-cmd_executeExplore [] _ = []
-cmd_executeExplore ((s,p):rest) m = cmd : (cmd_executeExplore rest m) 
-    where cmd = navigateToTarget m spd s target
-          spd = minimum [maxSpeed,dist-0.5]
-          target = (closestLocationTo s p)
-          dist = distance s target
-          
-
+cmd_executeLocationPlan :: [(Ship,Location)] -> GameMap -> [String]
+cmd_executeLocationPlan [] m = []
+cmd_executeLocationPlan ((s,e):rest) m = cmd  : cmd_executeLocationPlan rest m
+    where cmd = navigateToTarget m s e
+          dist = distance s e
 
 cmd_DockAll :: [(Ship, Planet)] -> [String]
 cmd_DockAll [] = []
@@ -37,16 +31,24 @@ run :: GameMap -> IO ()
 run i = do
     -- Update map
     g <- updateGameMap i
-    info g "---NEW TURN---"
+--    info g "---NEW TURN---"
 
     let ss = filter isUndocked (listMyShips g)         -- all undocked Ships of mine
-        ps = filter (not . isOwned) (listAllPlanets g) -- all unowned Planets on the map
+        ps = listAllPlanets g
+        enmSs = listEnemyShips g
         dockPlan = allCanDock ss ps
         canNotDockShips = restShipFromPlan ss dockPlan
-        explorePlan = explorationDistribute canNotDockShips ps
-        allCommand = cmd_DockAll dockPlan ++ cmd_executeExplore explorePlan g  
+        explorePlan = explorationDistribute canNotDockShips g 
+        attackShips = restShipFromPlan canNotDockShips explorePlan
+        attackPlan = attackDistribution attackShips g
+
+        exploreCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan explorePlan) g
+        attackCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan attackPlan) g
+        allCommand = cmd_DockAll dockPlan ++ exploreCmd ++ attackCmd
     
-    
+        
+    info g $ "------DEBUG---" ++ intercalate "\n" allCommand
+
     -- Send commands to move each Ship to the first empty Planet
     sendCommands allCommand
 

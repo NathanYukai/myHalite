@@ -4,6 +4,7 @@ module Hlt.GameMap where
 import qualified Data.Either as Either
 import qualified Data.Maybe as Maybe
 import qualified Data.Map as Map
+import Data.List
 import Hlt.Entity
 
 -- | A GameMap contains the current frame of a Halite game.
@@ -23,9 +24,20 @@ listAllPlanets g = Map.elems $ allPlanets g
 listAllShips :: GameMap -> [Ship]
 listAllShips g = concat $ map (Map.elems . ships) (Map.elems $ allPlayers g)
 
--- | Return a list of my Ships.
+listEnemyShips :: GameMap -> [Ship]
+listEnemyShips m = listAllShips m \\ listMyShips m
+
 listMyShips :: GameMap -> [Ship]
 listMyShips g = Map.elems $ ships $ Maybe.fromJust $ Map.lookup (myId g) (allPlayers g)
+
+listMyPlanet :: GameMap -> [Planet]
+listMyPlanet m = filter isMine $ listAllPlanets m
+    where isMine = \p -> isOwned p && ( (Maybe.fromJust (planetOwner p)) == myId m)
+
+listEnemyPlanet :: GameMap -> [Planet]
+listEnemyPlanet m = filter isMine $ listAllPlanets m
+    where isMine = \p -> isOwned p && ( (Maybe.fromJust (planetOwner p)) /= myId m)
+
 
 -- | Checks if any of the given Entities are in between two Entities.
 entitiesBetweenList :: Entity a => Entity b => Entity c => [a] -> b -> c -> [a]

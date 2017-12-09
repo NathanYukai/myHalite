@@ -5,8 +5,6 @@ import Hlt.GameMap
 import Hlt.Entity
 import Data.List
 
-listEnemyShips :: GameMap -> [Ship]
-listEnemyShips m = listAllShips m \\ listMyShips m
 
 isEnemyShip :: Ship -> GameMap -> Bool
 isEnemyShip s gMap = s `elem` (listMyShips gMap)
@@ -22,4 +20,33 @@ numberAdvantageInArea map center radius = myNum - eNum
           mShips = listAllShips map
           eShips = listEnemyShips map
 
+-- probably shouldn't use this one really
+getNotCrashSpd :: Float -> Float -> Float
+getNotCrashSpd distance spd 
+    | distance > 0 = minimum [distance,spd]
+    | otherwise = 0
 
+getClosestFromList :: Entity a => Entity b => a -> [b] -> b
+getClosestFromList e1 list = minimumBy comp list
+    where comp = \a b -> compare (distance e1 a) (distance e1 b)
+
+allFreePlanet :: GameMap -> [Planet]
+allFreePlanet m = filter (not . isOwned) $ listAllPlanets m
+
+longestDistanceInEntities :: Entity a => [a] -> Float
+longestDistanceInEntities es = maximum allDist
+    where allDist = [distance a b | a <- es, b <- es]
+
+farAwayFromEntities :: Entity a => a -> [a] -> Bool
+farAwayFromEntities e le = distToList > longestDistInList
+    where distToList = distance e $ getClosestFromList e le
+          longestDistInList = longestDistanceInEntities le
+
+closestEnemyShip :: Entity a => a -> GameMap -> Ship
+closestEnemyShip e m = getClosestFromList e $ listEnemyShips m 
+
+closestEnemyPlanet :: Entity a => a -> GameMap -> Planet
+closestEnemyPlanet e m = getClosestFromList e $ listEnemyPlanet m
+
+getTotalProduction :: [Planet] -> Int
+getTotalProduction ps = sum $ map production ps

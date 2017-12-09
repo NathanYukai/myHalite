@@ -4,6 +4,7 @@ module Hlt.Navigation where
 import Hlt.Constants
 import Hlt.Entity
 import Hlt.GameMap
+import Hlt.Utils
 
 -- | Converts angle in radians to degrees and truncates to an int.
 radiansToDegrees :: Float -> Int
@@ -23,26 +24,43 @@ undock s = "u " ++ (show $ shipId s)
 
 -- | Move a Ship directly towards a target.
 moveToTarget :: Entity a => Ship -> a -> String
-moveToTarget s e = thrust s (min (distanceEdges s e) maxSpeed) (angleRadians s e)
+moveToTarget s e = thrust s spd (angleRadians s e)
+    where dist = distanceEdges s e
+          spd = getNotCrashSpd dist maxSpeed
 
 -- target parameter is not used for now.
 getAvoidAngle :: Ship -> ([Planet],[Ship]) -> Float
 getAvoidAngle _ ([],[]) = 0
 getAvoidAngle s ([],pobs) = atan $ lenToAvoid/dToObs
-    where o = head pobs
+    where o = getClosestFromList s pobs 
           dToObs = distance s o
           lenToAvoid = radius o 
 getAvoidAngle s (sobs,_) = atan $ lenToAvoid/dToObs
-    where o = head sobs
+    where o = getClosestFromList s sobs
           dToObs = distance s o
           lenToAvoid = radius o 
 
-navigateToTarget :: Entity a => GameMap -> Float -> Ship -> a -> String
-navigateToTarget map spd ship t = thrust ship spd $ a+addAngle
+isLocationFree :: GameMap -> Location -> Bool
+isLocationFree m l = not $ or $ checkShips ++ checkPlanets
+    where bunpToShip = \s -> shipX s == locationX l && shipY s == locationY l
+          bunpToPlanet = \p -> distance l p <= radius p + 0.5
+          checkShips = map bunpToShip $ listAllShips m
+          checkPlanets = map bunpToPlanet $ listAllPlanets m
+
+navigateToTarget :: Entity a => GameMap -> Ship -> a -> String
+navigateToTarget map ship t = thrust ship spd $ oa + angle
     where d = distance ship t
-          a = angleRadians ship t
+          oa = angleRadians ship t
           obstacles = entitiesBetween map ship t
-          addAngle = getAvoidAngle ship obstacles
+          (spd,angle) = head $ [(s,a) | s <- spdRange, a <- angleRange, works s (a+oa)] ++ [(1,oa)]
+          spdRange = [maxSpeed, maxSpeed-0.5 .. 1]
+          angleRange = [0,0.1..(pi/2)] 
+          works = \s a -> noPnoS $ entitiesBetween map ship (Location (shipX ship + s *cos a) ( shipY ship + s * sin a))
+          noPnoS = \(p,s) -> length p + length s  == 0
+
+          
+
+--getAvailableAngleSpd :: 
 
 
 

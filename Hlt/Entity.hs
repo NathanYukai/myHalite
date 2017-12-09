@@ -105,10 +105,13 @@ distanceEdges a b = distance a b - radius a - radius b
 
 -- | Return the closest Location to an Entity
 closestLocationTo :: Entity a => Entity b => a -> b -> Location
-closestLocationTo s p = do
-   let a = angleRadians p s
-       r = radius p + 3
-   Location ((x p) + r * cos(a)) ((y p) + r * sin(a))
+closestLocationTo s p = nearbyLocationByRadians p a
+    where a = angleRadians p s
+        
+
+nearbyLocationByRadians :: Entity a => a -> Float -> Location
+nearbyLocationByRadians e a = Location ((x e) + r * cos(a)) ((y e) + r * sin(a))
+    where r = radius e + 3
 
 -- | Checks if an Planet is owned by a Player.
 isOwned :: Planet -> Bool
@@ -136,7 +139,7 @@ isFull p = length (dockedShips p) == dockingSpots p
 
 -- | Checks if a Ship is within docking range of Planet.
 canDock :: Ship -> Planet -> Bool
-canDock s p = distance s p <= radius p + dockRadius + shipRadius
+canDock s p = distance s p <= radius p + dockRadius + shipRadius && ( not $ isFull p )
 
 -- | Constant fudge value so that ships don't collide into to each other.
 collisionFudgeFactor :: Float
