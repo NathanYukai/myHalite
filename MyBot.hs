@@ -33,14 +33,15 @@ run i = do
     g <- updateGameMap i
 --    info g "---NEW TURN---"
 
-    let ss = filter isUndocked (listMyShips g)         -- all undocked Ships of mine
+    let distribution = distributeExploreAttackGather g
+        exploreSs = explore distribution
+        atkSs = attacks distribution
         ps = listAllPlanets g
         enmSs = listEnemyShips g
-        dockPlan = allCanDock ss ps
-        canNotDockShips = restShipFromPlan ss dockPlan
+        dockPlan = allCanDock exploreSs ps
+        canNotDockShips = restShipFromPlan exploreSs dockPlan
         explorePlan = explorationDistribute canNotDockShips g 
-        attackShips = restShipFromPlan canNotDockShips explorePlan
-        attackPlan = attackDistribution attackShips g
+        attackPlan = attackDistribution atkSs g
 
         exploreCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan explorePlan) g
         attackCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan attackPlan) g

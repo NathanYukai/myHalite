@@ -5,6 +5,20 @@ import Hlt.GameMap
 import Data.List
 import Hlt.Utils
 
+data Distribute =  Distribute { explore :: [Ship],
+                                attacks :: [Ship],
+                                gathers :: [Ship]} deriving (Eq,Show)
+
+
+distributeExploreAttackGather :: GameMap -> Distribute
+distributeExploreAttackGather map 
+  | goodProduction = Distribute{attacks = mySS, explore = [], gathers = []}
+  | otherwise = Distribute{explore = mySS, attacks = [], gathers = []}
+  where mySS = filter (not . isDocked) $ listMyShips map
+        myPs = listMyPlanet map
+        goodProduction = length myPs > 3 && ( and $ fmap (\p -> production p > 6 ) myPs )
+
+
 allCanDock :: [Ship] -> [Planet] -> [(Ship,Planet)]
 allCanDock _ [] = []
 allCanDock [] _ = []
@@ -25,12 +39,14 @@ explorationDistribute :: [Ship] -> GameMap -> [(Ship,Planet)]
 explorationDistribute [] _ = [] 
 explorationDistribute (s:ss) m = (s,targetP) : explorationDistribute ss m
     where myPs = listMyPlanet m
-          myUnderProdPs = filter (\p -> production p < 12) myPs 
-          freePs = filter (not . isOwned) $ listAllPlanets m
+          myUnderProdPs = filter (\p -> not (isFull p)) myPs 
+          freePs = allFreePlanet m
           targetP
             | length freePs == 0 = getClosestFromList s myPs
             | length myUnderProdPs == 0 = getClosestFromList s freePs
             | otherwise = getClosestFromList s myUnderProdPs
+
+
 
 
 targetPlanToLocationPlan :: Eq a => Entity a => [(Ship, a)] -> [(Ship,Location)]

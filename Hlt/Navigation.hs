@@ -53,7 +53,7 @@ navigateToTarget map ship t = thrust ship spd $ oa + angle
           oa = angleRadians ship t
           obstacles = entitiesBetween map ship t
           (spd,angle) = head $ [(s,a) | s <- spdRange, a <- angleRange, works s (a+oa)] ++ [(1,oa)]
-          spdRange = [maxSpeed, maxSpeed-0.5 .. 1]
+          spdRange = [6, 5.7 .. 0.5]
           angleRange = [0,0.1..(pi/2)] 
           works = \s a -> noPnoS $ entitiesBetween map ship (Location (shipX ship + s *cos a) ( shipY ship + s * sin a))
           noPnoS = \(p,s) -> length p + length s  == 0
