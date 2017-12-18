@@ -19,7 +19,7 @@ cmd_executeLocationPlan :: [(Ship,Location)] -> GameMap -> [String]
 cmd_executeLocationPlan [] m = []
 cmd_executeLocationPlan ((s,e):rest) m = cmd  : cmd_executeLocationPlan rest m
     where cmd = navigateToTarget m s e
-          dist = distance s e
+
 
 cmd_DockAll :: [(Ship, Planet)] -> [String]
 cmd_DockAll [] = []
@@ -36,6 +36,7 @@ run i = do
     let distribution = distributeExploreAttackGather g
         exploreSs = explore distribution
         atkSs = attacks distribution
+
         ps = listAllPlanets g
         enmSs = listEnemyShips g
         dockPlan = allCanDock exploreSs ps
@@ -43,8 +44,8 @@ run i = do
         explorePlan = explorationDistribute canNotDockShips g 
         attackPlan = attackDistribution atkSs g
 
-        exploreCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan explorePlan) g
-        attackCmd = cmd_executeLocationPlan ( targetPlanToLocationPlan attackPlan) g
+        exploreCmd = cmd_executeLocationPlan (targetPlanToLocationPlan explorePlan) g
+        attackCmd = cmd_executeLocationPlan (targetPlanToLocationPlan attackPlan) g
         allCommand = cmd_DockAll dockPlan ++ exploreCmd ++ attackCmd
     
         

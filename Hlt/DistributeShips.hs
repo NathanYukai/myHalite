@@ -10,13 +10,23 @@ data Distribute =  Distribute { explore :: [Ship],
                                 gathers :: [Ship]} deriving (Eq,Show)
 
 
+---- work on this. maybe decide depends on planet?
 distributeExploreAttackGather :: GameMap -> Distribute
-distributeExploreAttackGather map 
-  | goodProduction = Distribute{attacks = mySS, explore = [], gathers = []}
+distributeExploreAttackGather gmap 
+  | goodProduction = Distribute{attacks = fH, explore = sH, gathers = []}
   | otherwise = Distribute{explore = mySS, attacks = [], gathers = []}
-  where mySS = filter (not . isDocked) $ listMyShips map
-        myPs = listMyPlanet map
-        goodProduction = length myPs > 3 && ( and $ fmap (\p -> production p > 6 ) myPs )
+  where mySS = myUndockedShips gmap
+        myPs = listMyPlanet gmap
+        goodProduction = 120 < (sum $ map production myPs )
+        (fH, sH) = splitShipOnDistanceToPlanetAndEnemy gmap 
+
+splitShipOnDistanceToPlanetAndEnemy :: GameMap -> ([Ship],[Ship])
+splitShipOnDistanceToPlanetAndEnemy m = (atk, mySS \\ atk)  
+    where mySS = myUndockedShips m
+          ps = listDockablePlanet m
+          enms = listEnemyShips m
+          shouldAtk = \s -> length ps == 0  || distance s ( getClosestFromList s enms) < distance s (getClosestFromList s ps)
+          atk = filter shouldAtk mySS
 
 
 allCanDock :: [Ship] -> [Planet] -> [(Ship,Planet)]
@@ -45,8 +55,6 @@ explorationDistribute (s:ss) m = (s,targetP) : explorationDistribute ss m
             | length freePs == 0 = getClosestFromList s myPs
             | length myUnderProdPs == 0 = getClosestFromList s freePs
             | otherwise = getClosestFromList s myUnderProdPs
-
-
 
 
 targetPlanToLocationPlan :: Eq a => Entity a => [(Ship, a)] -> [(Ship,Location)]
@@ -79,13 +87,13 @@ groupPlanByTarget ps = groupBy sameTarget ps
 attackDistribution :: [Ship] -> GameMap -> [(Ship,Ship)] 
 attackDistribution [] _ = []
 attackDistribution (s:mySs) m = (s,target) : attackDistribution mySs m
-    where target = enemy
+    where target = getClosestFromList s $ listEnemyShips m
           enmSs = listEnemyShips m
           enemy = maximumBy compPriority enmSs
           compPriority = \a b -> compare (attackPriority s a) (attackPriority s b)
 
 attackPriority :: Ship -> Ship -> Float
-attackPriority myS enS = dockScore - distance myS enS
+attackPriority myS enS = -distance myS enS
     where dockScore 
               | dockingStatus enS == Undocked = 0
               | otherwise = 5

@@ -39,6 +39,9 @@ listEnemyPlanet m = filter isMine $ listAllPlanets m
     where isMine = \p -> isOwned p && ( (Maybe.fromJust (planetOwner p)) /= myId m)
 
 
+myUndockedShips :: GameMap -> [Ship]
+myUndockedShips m = filter (not . isDocked) $ listMyShips m
+
 -- | Checks if any of the given Entities are in between two Entities.
 entitiesBetweenList :: Entity a => Entity b => Entity c => [a] -> b -> c -> [a]
 entitiesBetweenList l e0 e1 = filter (\e -> isSegmentCircleCollision e0 e1 e) $ filter (\e -> notEqual e e0 && notEqual e e1) l

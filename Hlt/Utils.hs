@@ -33,10 +33,12 @@ getClosestFromList e1 list = minimumBy comp list
 allFreePlanet :: GameMap -> [Planet]
 allFreePlanet m = filter (not . isOwned) $ listAllPlanets m
 
+-- as in, in a bunch of entities
 longestDistanceInEntities :: Entity a => [a] -> Float
 longestDistanceInEntities es = maximum allDist
     where allDist = [distance a b | a <- es, b <- es]
 
+-- distance to closest is farther than the above function value
 farAwayFromEntities :: Entity a => a -> [a] -> Bool
 farAwayFromEntities e le = distToList > longestDistInList
     where distToList = distance e $ getClosestFromList e le
@@ -50,3 +52,12 @@ closestEnemyPlanet e m = getClosestFromList e $ listEnemyPlanet m
 
 getTotalProduction :: [Planet] -> Int
 getTotalProduction ps = sum $ map production ps
+
+
+listDockablePlanet :: GameMap -> [Planet]
+listDockablePlanet m = allFreePlanet m ++ myUnderPs
+    where myUnderPs 
+             | length (listMyPlanet m ) > 0 = filter (not . isFull) $ listMyPlanet m
+             | otherwise = []
+
+
