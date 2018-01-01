@@ -24,23 +24,13 @@ listAllPlanets g = Map.elems $ allPlanets g
 listAllShips :: GameMap -> [Ship]
 listAllShips g = concat $ map (Map.elems . ships) (Map.elems $ allPlayers g)
 
-listEnemyShips :: GameMap -> [Ship]
-listEnemyShips m = listAllShips m \\ listMyShips m
 
-listMyShips :: GameMap -> [Ship]
-listMyShips g = Map.elems $ ships $ Maybe.fromJust $ Map.lookup (myId g) (allPlayers g)
-
-listMyPlanet :: GameMap -> [Planet]
-listMyPlanet m = filter isMine $ listAllPlanets m
-    where isMine = \p -> isOwned p && ( (Maybe.fromJust (planetOwner p)) == myId m)
 
 listEnemyPlanet :: GameMap -> [Planet]
 listEnemyPlanet m = filter isMine $ listAllPlanets m
     where isMine = \p -> isOwned p && ( (Maybe.fromJust (planetOwner p)) /= myId m)
 
 
-myUndockedShips :: GameMap -> [Ship]
-myUndockedShips m = filter (not . isDocked) $ listMyShips m
 
 -- | Checks if any of the given Entities are in between two Entities.
 entitiesBetweenList :: Entity a => Entity b => Entity c => [a] -> b -> c -> [a]

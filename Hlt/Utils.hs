@@ -3,6 +3,7 @@ module Hlt.Utils where
 import Hlt.Constants
 import Hlt.GameMap
 import Hlt.Entity
+import Hlt.PlayersInfo
 import Data.List
 
 

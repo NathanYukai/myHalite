@@ -4,6 +4,7 @@ import Hlt.Entity
 import Hlt.GameMap
 import Data.List
 import Hlt.Utils
+import Hlt.PlayersInfo
 
 data Distribute =  Distribute { explore :: [Ship],
                                 attacks :: [Ship],
